@@ -59,7 +59,7 @@ class BookingController extends Controller
         // Integrasi Midtrans
         $params = [
             'transaction_details' => [
-                'order_id' => $booking->id,
+                'order_id' => $order_id,
                 'gross_amount' => $booking->price,
             ],
             'customer_details' => [
@@ -72,7 +72,7 @@ class BookingController extends Controller
         $snapToken = Snap::getSnapToken($params);
 
         // Simpan order_id Midtrans di database
-        $booking->midtrans_order_id = $booking->id;
+        $booking->midtrans_order_id = $order_id;
         $booking->save();
 
         return redirect()->route('booking.confirmation.page', $booking->id)->with('snapToken', $snapToken);
@@ -90,7 +90,7 @@ class BookingController extends Controller
         if (!session('snapToken')) {
             $params = [
                 'transaction_details' => [
-                    'order_id' => $booking->id,
+                    'order_id' => $booking->midtrans_order_id,
                     'gross_amount' => $booking->price,
                 ],
                 'customer_details' => [
@@ -108,7 +108,7 @@ class BookingController extends Controller
         return view('customer.booking.confirmation', compact('booking', 'snapToken'));
     }
 
-    public function updatePaymentStatus(Request $request, $id)
+    public function updatePaymentStatus($id)
     {
         $booking = Booking::findOrFail($id);
         
